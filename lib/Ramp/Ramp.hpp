@@ -258,11 +258,14 @@ private:
     static void timerCallback(TimerHandle_t xTimer)
     {
         STM32Ramp *rampObj = (STM32Ramp *)pvTimerGetTimerID(xTimer);
-        if (rampObj != NULL && rampObj->automated)
+        if (rampObj != nullptr && rampObj->automated)
         {
             rampObj->updateFromTimer();
-            // T v = rampObj->getValue();
-            // rampObj->callback();
+            // Вызываем Callback определяемый пользователем, если он был задан
+            if (rampObj->callback != nullptr)
+            {
+                rampObj->callback(reinterpret_cast<void *>(static_cast<uintptr_t>(rampObj->getValue())));
+            }
         }
     }
 
@@ -610,6 +613,12 @@ public:
             xTimerReset(xTimer, 0);
         }
     }
+
+    // TODO:
+    // Установим параметры и запустим
+    // ramp.setRange(0, 100);
+    // ramp.setDuration(1000); // 1 секунда
+    // ramp.setMode(LINEAR);
 
     float getCompletion()
     {

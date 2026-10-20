@@ -2,6 +2,8 @@
 #include <Ramp.hpp>
 #include <uart_printf.h>
 #include <usart.h>
+#include <tim.h>
+#include <local_misc.h>
 
 // Это пространство или слой программы, в котором уже можно и нужно использовать возможности С++.
 // Здесь будут только вставки на С
@@ -20,9 +22,11 @@ STM32Ramp<uint8_t> backandforthRamp(0,
                                     [](void *arg)
                                     {
                                         // Извлекаем значение обратно
-                                        // uint8_t val = static_cast<uint8_t>(reinterpret_cast<uintptr_t>(arg));
+                                        uint8_t val = static_cast<uint8_t>(reinterpret_cast<uintptr_t>(arg));
 
-                                        // uart_printf(&huart3, ">callback_val:%u\r\n", val);
+                                        // Применяем полученное значение
+                                        uart_printf(&huart3, ">callback_val:%u\r\n", val);
+                                        set_PWM_duty16(&htim1, TIM_CHANNEL_1, val);
                                     });
 STM32Ramp<uint8_t> bounceRamp(0);
 uint8_t targetValue = 255; // value to go to
@@ -57,7 +61,7 @@ extern "C"
             started = true;
             myRamp.go(targetValue, duration_ms, SINUSOIDAL_OUT); // start interpolation (value to go to, duration in ms)
             downRamp.go(targetValueDown, duration_ms, LINEAR, BACKWARD);
-            backandforthRamp.go(targetValue, duration_ms, LINEAR, FORWARD, FORTHANDBACK);
+            backandforthRamp.go(100, duration_ms, LINEAR, FORWARD, FORTHANDBACK);
             bounceRamp.go(targetValue, duration_ms, BOUNCE_IN, FORWARD, LOOPFORWARD);
             // myRamp.setAutomation(false); // Disable autoupdate
             // myRamp.setGrain(10);
